@@ -81,6 +81,7 @@
     <Compile Include="Mathematic\EquationChromosome.cs" />
     <Compile Include="Drawing\BitmapChromosome.cs" />
     <Compile Include="Drawing\BitmapEqualityFitness.cs" />
+    <Compile Include="CCEDoubleFitness.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\GeneticSharp.Domain\GeneticSharp.Domain.csproj">

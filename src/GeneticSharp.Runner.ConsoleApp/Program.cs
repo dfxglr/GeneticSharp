@@ -1,7 +1,9 @@
 ﻿using System;
 using System.IO;
+using System.Collections.Generic;
 using GeneticSharp.Domain;
 using GeneticSharp.Domain.Populations;
+using GeneticSharp.Extensions;
 using GeneticSharp.Infrastructure.Framework.Reflection;
 using GeneticSharp.Infrastructure.Threading;
 using GeneticSharp.Runner.ConsoleApp.Samples;
@@ -44,21 +46,35 @@ namespace GeneticSharp.Runner.ConsoleApp
                 Console.WriteLine("Invalid option.");
             }
 
-            var sampleController = TypeHelper.CreateInstanceByName<ISampleController>(selectedSampleName);
+            // Do it twice, with CCE
+            List<CCESpecies> sp = new List<CCESpecies>();
+            sp.Add(new CCESpecies());
+            sp.Add(new CCESpecies());
+
+            
+            var sampleController1 = TypeHelper.CreateInstanceByName<ISampleController>(selectedSampleName);
+            var sampleController2 = TypeHelper.CreateInstanceByName<ISampleController>(selectedSampleName);
             DrawSampleName(selectedSampleName);
-            sampleController.Initialize();
+            sampleController1.Initialize();
+            sampleController2.Initialize();
 
             Console.WriteLine("Starting...");
 
-            var selection = sampleController.CreateSelection();
-            var crossover = sampleController.CreateCrossover();
-            var mutation = sampleController.CreateMutation();
-            var fitness = sampleController.CreateFitness();
-            var population = new Population(100, 200, sampleController.CreateChromosome());
-            population.GenerationStrategy = new PerformanceGenerationStrategy();
+            sp[0].Selection = sampleController1.CreateSelection();
+            sp[0].Crossover = sampleController1.CreateCrossover();
+            sp[0].Mutation = sampleController1.CreateMutation();
+            sp[0].Population = new Population(100, 200, sampleController1.CreateChromosome());
+            sp[0].Population.GenerationStrategy = new PerformanceGenerationStrategy();
 
-            var ga = new GeneticAlgorithm(population, fitness, selection, crossover, mutation);
-            ga.Termination = sampleController.CreateTermination();            
+			sp[1].Selection = sampleController2.CreateSelection();
+			sp[1].Crossover = sampleController2.CreateCrossover();
+			sp[1].Mutation = sampleController2.CreateMutation();
+			sp[1].Population = new Population(100, 200, sampleController2.CreateChromosome());
+			sp[1].Population.GenerationStrategy = new PerformanceGenerationStrategy();
+
+            var ga = new GeneticAlgorithmCCE(sp);
+			ga.Fitness = new CCEDoubleFitness (sampleController1.CreateFitness(), sampleController2.CreateFitness());
+            ga.Termination = sampleController1.CreateTermination();            
 
             var terminationName = ga.Termination.GetType().Name;
 
@@ -66,17 +82,29 @@ namespace GeneticSharp.Runner.ConsoleApp
             {
                 DrawSampleName(selectedSampleName);
 
-                var bestChromosome = ga.Population.BestChromosome;
+                var bestChromosome = ga.Species[0].Population.BestChromosome;
                 Console.WriteLine("Termination: {0}", terminationName);
-                Console.WriteLine("Generations: {0}", ga.Population.GenerationsNumber);
+				Console.WriteLine("Generations: {0}", ga.Species[0].Population.GenerationsNumber);
                 Console.WriteLine("Fitness: {0,10}", bestChromosome.Fitness);
                 Console.WriteLine("Time: {0}", ga.TimeEvolving);
-                sampleController.Draw(bestChromosome);
+                sampleController1.Draw(bestChromosome);
             };
+			ga.GenerationRan += delegate
+			{
+				DrawSampleName(selectedSampleName);
+
+				var bestChromosome = ga.Species[1].Population.BestChromosome;
+				Console.WriteLine("Termination: {0}", terminationName);
+				Console.WriteLine("Generations: {0}", ga.Species[1].Population.GenerationsNumber);
+				Console.WriteLine("Fitness: {0,10}", bestChromosome.Fitness);
+				Console.WriteLine("Time: {0}", ga.TimeEvolving);
+				sampleController2.Draw(bestChromosome);
+			};
 
             try
             {
-                sampleController.ConfigGA(ga);
+				//sampleController1.ConfigGA(ga);
+				//sampleController2.ConfigGA(ga);
                 ga.Start();
             }
             catch (Exception ex)

@@ -86,6 +86,7 @@ namespace GeneticSharp.Domain.Chromosomes
         /// <see cref="GeneticSharp.Domain.Chromosomes.Gene"/>; otherwise, <c>false</c>.</returns>
         public bool Equals(Gene other)
         {
+            // Try to cast, to check if they are enumerable
             var eValue = Value as IEnumerable;
             var eOther = other.Value as IEnumerable;
             if(eValue == null ||  eOther == null)

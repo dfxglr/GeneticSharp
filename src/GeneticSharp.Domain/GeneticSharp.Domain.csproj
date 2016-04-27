@@ -118,6 +118,9 @@
     <Compile Include="Populations\IPopulation.cs" />
     <Compile Include="Crossovers\OrderBasedCrossover.cs" />
     <Compile Include="Crossovers\PositionBasedCrossover.cs" />
+    <Compile Include="CCESpecies.cs" />
+    <Compile Include="GeneticAlgorithmCCE.cs" />
+    <Compile Include="Fitnesses\ICCEFitness.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

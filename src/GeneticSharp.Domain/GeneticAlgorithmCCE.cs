@@ -15,38 +15,7 @@ using HelperSharp;
 
 namespace GeneticSharp.Domain
 {
-    #region Enums
-    /// <summary>
-    /// The possible states for a genetic algorithm.
-    /// </summary>
-    public enum GeneticAlgorithmState
-    {
-        /// <summary>
-        /// The GA has not been started yet.
-        /// </summary>
-        NotStarted,
 
-        /// <summary>
-        /// The GA has been started and is running.
-        /// </summary>
-        Started,
-
-        /// <summary>
-        /// The GA has been stopped and is not running.
-        /// </summary>
-        Stopped,
-
-        /// <summary>
-        /// The GA has been resumed after a stop or termination reach and is running.
-        /// </summary>
-        Resumed,
-
-        /// <summary>
-        /// The GA has reach the termination condition and is not running.
-        /// </summary>
-        TerminationReached
-    }
-    #endregion
 
     /// <summary>
     /// A genetic algorithm (GA) is a search heuristic that mimics the process of natural selection.
@@ -63,23 +32,29 @@ namespace GeneticSharp.Domain
     public sealed class GeneticAlgorithmCCE : IGeneticAlgorithm
     {
 
+		/// <summary>
+		///  dummy
+		/// </summary>
+		public IChromosome BestChromosome { get { return BestChromosomeSet.First(); } }
+		// Might wanna fix this
+
+
         #region Fields
         private bool m_stopRequested;
         private object m_lock = new object();
         private GeneticAlgorithmState m_state;
         #endregion
 
-        public List<CCESpecies> Species { get; protected set;}
+		/// <summary>
+		/// List of species
+		/// </summary>
+        public List<CCESpecies> Species { get; set;}
 
         #region Constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="GeneticSharp.Domain.GeneticAlgorithm"/> class.
+        /// Initializes a new instance of the <see cref="GeneticSharp.Domain.GeneticAlgorithmCCE"/> class.
         /// </summary>
-        /// <param name="population">The chromosomes population.</param>
-        /// <param name="fitness">The fitness evaluation function.</param>
-        /// <param name="selection">The selection operator.</param>
-        /// <param name="crossover">The crossover operator.</param>
-        /// <param name="mutation">The mutation operator.</param>
+        /// <param name="species">The species for this CCE</param>
         public GeneticAlgorithmCCE(List<CCESpecies> species)
         {
 
@@ -110,12 +85,15 @@ namespace GeneticSharp.Domain
         #endregion
 
 
-
+		/// <summary>
+		/// Gets the generations number.
+		/// </summary>
+		/// <value>The generations number.</value>
         public int GenerationsNumber
         {
             get
             {
-                return Population.GenerationsNumber;
+				return Species.First().Population.GenerationsNumber;
             }
         }
 
@@ -173,12 +151,23 @@ namespace GeneticSharp.Domain
         }
 
         /// <summary>
-        /// Gets or sets the task executor which will be used to execute fitness evaluation.
+        /// Gets or sets the task executor which will be used to execute generation
         /// </summary>
         public ITaskExecutor TaskExecutorGen { get; set; }
+
+		/// <summary>
+		/// Gets or sets the task executor which will be used to execute fitness evaluation.
+		/// </summary>
         public ITaskExecutor TaskExecutorFit { get; set; }
 
+		/// <summary>
+		/// Termination
+		/// </summary>
         public ITermination Termination { get; set; }
+
+		/// <summary>
+		/// Fitness
+		/// </summary>
         public ICCEFitness Fitness { get; set;}
 
 
@@ -221,11 +210,11 @@ namespace GeneticSharp.Domain
                     m_stopRequested = false;
                 }
 
-                if (Population.GenerationsNumber == 0)
+				if (Species.First().Population.GenerationsNumber == 0)
                 {
                     throw new InvalidOperationException("Attempt to resume a genetic algorithm which was not yet started.");
                 }
-                else if (Population.GenerationsNumber > 1)
+				else if (Species.First().Population.GenerationsNumber > 1)
                 {
                     if (Termination.HasReached(this))
                     {
@@ -269,7 +258,7 @@ namespace GeneticSharp.Domain
         /// </summary>
         public void Stop()
         {
-            if (Population.GenerationsNumber == 0)
+			if (Species.First().Population.GenerationsNumber == 0)
             {
                 throw new InvalidOperationException("Attempt to stop a genetic algorithm which was not yet started.");
             }
@@ -379,11 +368,17 @@ namespace GeneticSharp.Domain
                             continue;
                         }
 
-                        int randIndex = RandomizationProvider.Current.GetInt(1,Species[o].Population.CurrentGeneration.Chromosomes.Count-1);
+						int randIndex;
+
+						if(Species[o].Population.CurrentGeneration.Chromosomes.Count > 1)
+                        	randIndex = RandomizationProvider.Current.GetInt(1,Species[o].Population.CurrentGeneration.Chromosomes.Count-1);
+						else
+							randIndex = 0;
 
                         RandomList.Add(Species[o].Population.CurrentGeneration.Chromosomes[randIndex]);
 
                     }
+
 
                     TaskExecutorFit.Add(() =>
                             {
@@ -413,18 +408,22 @@ namespace GeneticSharp.Domain
         /// Runs the evaluate fitness.
         /// </summary>
         /// <returns>The evaluate fitness.</returns>
-        /// <param name="chromosome">The chromosome.</param>
+		/// <param name="individual">The chromosome.</param>
+		/// <param name="randomSet">The chromosome.</param>
         private object RunEvaluateFitness(IChromosome individual, List<IChromosome> randomSet)
         {
 
             try
             {
-                individual.Fitness = Math.Max(Fitness(randomSet),
-                                         Fitness(BestChromosomeSet));
+				if(BestChromosomeSet == null || BestChromosomeSet.Count == 0 || BestChromosomeSet.Contains(null))
+					individual.Fitness = Fitness.Evaluate(randomSet);
+				else
+                	individual.Fitness = Math.Max(Fitness.Evaluate(randomSet),
+                                         Fitness.Evaluate(BestChromosomeSet));
             }
             catch (Exception ex)
             {
-                throw new FitnessException(Fitness, "Error executing Fitness.Evaluate for chromosome: {0}".With(ex.Message), ex);
+                throw new FitnessException("Error executing Fitness.Evaluate for chromosome: {0}".With(ex.Message), ex);
             }
 
             return individual.Fitness;

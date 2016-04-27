@@ -15,7 +15,9 @@ using GeneticSharp.Infrastructure.Framework.Threading;
 namespace GeneticSharp.Domain
 {
 
-
+	/// <summary>
+	/// A Speecies fr use in CCE
+	/// </summary>
     public sealed class CCESpecies
     {
         // This class containts everything a species needs in CCE
@@ -33,16 +35,20 @@ namespace GeneticSharp.Domain
         public const float DefaultMutationProbability = 0.1f;
         #endregion
 
-
+		/// <summary>
+		/// Initializes a new instance of the <see cref="GeneticSharp.Domain.CCESpecies"/> class.
+		/// </summary>
         public CCESpecies()
         {
             CrossoverProbability = DefaultCrossoverProbability;
             MutationProbability = DefaultMutationProbability;
 
-            TaskExecutor = new LinearTaskExecutor();
 
         }
 
+		/// <summary>
+		/// Creates the new generation of children.
+		/// </summary>
         public void GenerateChildren()
         {
             // Do the whole selection, crossover, etc
@@ -53,6 +59,9 @@ namespace GeneticSharp.Domain
             Population.CreateNewGeneration(newGenerationChromosomes);
         }
 
+		/// <summary>
+		/// Orders the chromosomes.
+		/// </summary>
         public void OrderChromosomes()
         {
             Population.CurrentGeneration.Chromosomes = Population.CurrentGeneration.Chromosomes.OrderByDescending(c => c.Fitness.Value).ToList();
@@ -66,9 +75,6 @@ namespace GeneticSharp.Domain
         {
             return Selection.SelectChromosomes(Population.MinSize, Population.CurrentGeneration);
         }
-        public ITaskExecutor TaskExecutor { get; set; }
-
-
 
         /// <summary>
         /// Crosses the specified parents.
@@ -124,7 +130,7 @@ namespace GeneticSharp.Domain
         /// Gets the population.
         /// </summary>
         /// <value>The population.</value>
-        public IPopulation Population { get; private set; }
+        public IPopulation Population { get; set; }
 
         /// <summary>
         /// Gets or sets the selection operator.
