@@ -10,6 +10,7 @@ using GeneticSharp.Domain.Randomizations;
 using GeneticSharp.Domain.Reinsertions;
 using GeneticSharp.Domain.Selections;
 using GeneticSharp.Domain.Terminations;
+using GeneticSharp.Infrastructure.Threading;
 using GeneticSharp.Infrastructure.Framework.Threading;
 using HelperSharp;
 
@@ -61,8 +62,16 @@ namespace GeneticSharp.Domain
             Species = species;
             TimeEvolving = TimeSpan.Zero;
             State = GeneticAlgorithmState.NotStarted;
-            TaskExecutorFit = new LinearTaskExecutor();
-            TaskExecutorGen = new LinearTaskExecutor();
+			TaskExecutorFit = new SmartThreadPoolTaskExecutor()
+			{
+				MinThreads = 10,
+				MaxThreads = 20
+			};       
+			TaskExecutorGen = new SmartThreadPoolTaskExecutor()
+			{
+				MinThreads = 10,
+				MaxThreads = 20
+			};       
         }
 
         #endregion
@@ -89,12 +98,8 @@ namespace GeneticSharp.Domain
 		/// Gets the generations number.
 		/// </summary>
 		/// <value>The generations number.</value>
-        public int GenerationsNumber
-        {
-            get
-            {
-				return Species.First().Population.GenerationsNumber;
-            }
+        public int GenerationsNumber {
+			get; set;
         }
 
         /* ChromosomeSet** */
@@ -240,8 +245,8 @@ namespace GeneticSharp.Domain
                     }
 
                     startDateTime = DateTime.Now;
-                    //terminationConditionReached = EvolveOneGeneration();
-                    EvolveOneGeneration();
+					terminationConditionReached = EvolveOneGeneration();
+                    //EvolveOneGeneration();
                     TimeEvolving += DateTime.Now - startDateTime;
                 }
                 while (!terminationConditionReached);
@@ -309,6 +314,7 @@ namespace GeneticSharp.Domain
                 EvaluateFitness(spec);
                 spec.Population.EndCurrentGeneration();
             }
+			GenerationsNumber++;
 
             if (GenerationRan != null)
             {

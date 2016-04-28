@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using GeneticSharp.Domain;
 using GeneticSharp.Domain.Populations;
 using GeneticSharp.Extensions;
+using GeneticSharp.Domain.Reinsertions;
 using GeneticSharp.Infrastructure.Framework.Reflection;
 using GeneticSharp.Infrastructure.Threading;
 using GeneticSharp.Runner.ConsoleApp.Samples;
@@ -63,12 +64,14 @@ namespace GeneticSharp.Runner.ConsoleApp
             sp[0].Selection = sampleController1.CreateSelection();
             sp[0].Crossover = sampleController1.CreateCrossover();
             sp[0].Mutation = sampleController1.CreateMutation();
+			sp [0].Reinsertion = new ElitistReinsertion ();
             sp[0].Population = new Population(100, 200, sampleController1.CreateChromosome());
             sp[0].Population.GenerationStrategy = new PerformanceGenerationStrategy();
 
 			sp[1].Selection = sampleController2.CreateSelection();
 			sp[1].Crossover = sampleController2.CreateCrossover();
 			sp[1].Mutation = sampleController2.CreateMutation();
+			sp [1].Reinsertion = new ElitistReinsertion ();
 			sp[1].Population = new Population(100, 200, sampleController2.CreateChromosome());
 			sp[1].Population.GenerationStrategy = new PerformanceGenerationStrategy();
 
@@ -80,6 +83,7 @@ namespace GeneticSharp.Runner.ConsoleApp
 
             ga.GenerationRan += delegate
             {
+				Console.Clear();
                 DrawSampleName(selectedSampleName);
 
                 var bestChromosome = ga.Species[0].Population.BestChromosome;
@@ -127,7 +131,7 @@ namespace GeneticSharp.Runner.ConsoleApp
 
         private static void DrawSampleName(string selectedSampleName)
         {
-            Console.Clear();
+            //Console.Clear();
 
             Console.ForegroundColor = ConsoleColor.DarkGreen;
             Console.WriteLine("GeneticSharp - ConsoleApp");
