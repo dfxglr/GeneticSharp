@@ -21,7 +21,7 @@ namespace GeneticSharp.Domain
     public sealed class CCESpecies
     {
         // This class containts everything a species needs in CCE
-
+		public string Name {get;set;}
 
         #region Constants
         /// <summary>

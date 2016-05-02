@@ -363,6 +363,9 @@ namespace GeneticSharp.Domain
 
                 foreach(var individual in spec.Population.CurrentGeneration.Chromosomes)
                 {
+					if(individual.Fitness.HasValue)
+						continue;
+					
                     List<IChromosome> RandomList = new List<IChromosome>();
 
                     for(int o = 0; o < Species.Count; o++)
