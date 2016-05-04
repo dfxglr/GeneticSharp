@@ -1,3 +1,4 @@
+using System;
 using GeneticSharp.Domain.Chromosomes;
 using System.Collections.Generic;
 
@@ -13,6 +14,7 @@ namespace GeneticSharp.Domain.Crossovers
 
 
         private const int MinimumCommonLength = 4;
+        private List<int[]> CommonParts;
 
 
         public SVLC(int parentsNumber, int childrenNumber) : base(parentsNumber, childrenNumber)
@@ -25,21 +27,120 @@ namespace GeneticSharp.Domain.Crossovers
        {
            List<IChromosome> children = new List<IChromosome>();
            // Find LCSS of at least n length
-           List<int[]> CommonParts = GetSynapsingParts(parents);
+           CommonParts = GetSynapsingParts(parents);
 
            if(CommonParts.Count == 0)
            {
                // No LCSS found - what then?
+               return children;
            }
 
            // Select n random points
                 // order by length and choose those more often? Choose all?
 
+           // Number of children (yah, it's a crapload.... :S )
+           int listSize = (int) Math.Pow(2, CommonParts.Count + 1);
 
-           // Crossover at those points
-           //       // Use one/two point crossover?
+           for( int i = 1; i < listSize-1; i++)
+           {
+               // 0 and listSize are 00000 and 11111 meaning exact copies
+               //
+               //
+               // Create offspring #i
+               IChromosome offspring = CreateOffspring(parents[0], parents[1], i);
+
+               // Check if it equals parents?  will it ever?
+
+
+               // Add to children
+               children.Add(offspring);
+           }
 
            return children;
+       }
+
+       private IChromosome CreateOffspring(IChromosome p1, IChromosome p2, int bitPattern)
+       {
+            // LSB signifies which parent the first variable part comes from
+            // 0 = p1, 1 = p2
+            // Shift right and continue, n+1 times
+            // Return  resulting chromosome
+            var p1_genes = p1.GetGenes();
+            var p2_genes = p2.GetGenes();
+
+            List<Gene> child = new List<Gene>();
+
+            // Copy the correct parts from either parent into child
+            for(int i = 0; i <= CommonParts.Count; i++)
+            {
+                // indices where we cut (crossover points)
+                int index_1;
+                int index_2;
+
+                // Is LSB 1?
+                if((bitPattern & 1) > 0)
+                {
+                    // Take from p2
+                    if(i == 0)
+                    {
+                        // at start
+                        // Copy from 0 to first i
+                        index_1 = 0;
+                        index_2 = CommonParts[i][2];
+                    }
+                    else
+                    {
+                        //          index           +    len
+                        index_1 = CommonParts[i-1][2] + CommonParts[i-1][0];
+
+                        // at end
+                        if(i == CommonParts.Count)
+                            index_2 = p2_genes.Length - 1;
+                        else
+                            index_2 = CommonParts[i][2];
+                    }
+
+                    // Only copy if still inside array
+                    if(index_1 < p2_genes.Length && index_2 < p2_genes.Length)
+                        child.AddRange(new ArraySegment<Gene>(p2_genes, index_1, index_2 - index_1));
+                }
+                else
+                {
+                    // Take from p1
+                    if(i == 0)
+                    {
+                        // at start
+                        // Copy from 0 to first i
+                        index_1 = 0;
+                        index_2 = CommonParts[i][1];
+                    }
+                    else
+                    {
+                        //          index           +    len
+                        index_1 = CommonParts[i-1][1] + CommonParts[i-1][0];
+
+                        // at end
+                        if(i == CommonParts.Count)
+                            index_2 = p1_genes.Length - 1;
+                        else
+                            index_2 = CommonParts[i][1];
+                    }
+
+                    // Only copy if still inside array
+                    if(index_1 < p1_genes.Length && index_2 < p1_genes.Length)
+                        child.AddRange(new ArraySegment<Gene>(p1_genes, index_1, index_2 - index_1));
+                }
+
+                // shift pattern right
+                bitPattern = bitPattern >> 1;
+            }
+
+
+            // Create chromosomes from genes
+            IChromosome rchild = p1.CreateNew();
+            rchild.Resize(child.Count);
+            rchild.ReplaceGenes(0, child.ToArray());
+            return rchild;
        }
 
 
@@ -55,6 +156,7 @@ namespace GeneticSharp.Domain.Crossovers
            return parts;
        }
 
+       // Calculate table used for finding longest common substring
        private int[,] LCSSTable(IList<IChromosome> parents)
        {
 
@@ -65,6 +167,7 @@ namespace GeneticSharp.Domain.Crossovers
            {
                for(int o = 0; o < parents[1].Length; o++)
                {
+
                    if(parents[0].GetGene(i) != parents[1].GetGene(o))
                    {
                        table[i,o] = 0;
@@ -86,6 +189,8 @@ namespace GeneticSharp.Domain.Crossovers
 
        }
 
+       // Recursive function to find similar parts. Returns list
+       // ordered so the first parts are first in the last
        private List<int[]> SynapsingParts( int[,] Table)
        {
            int maxI = 0;
