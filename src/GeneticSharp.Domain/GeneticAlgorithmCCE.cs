@@ -40,6 +40,10 @@ namespace GeneticSharp.Domain
 		// Might wanna fix this
 
 
+		private bool _debugging = false;
+
+		private System.Diagnostics.Stopwatch timer = new System.Diagnostics.Stopwatch ();
+
         #region Fields
         private bool m_stopRequested;
         private object m_lock = new object();
@@ -50,7 +54,7 @@ namespace GeneticSharp.Domain
 		/// List of species
 		/// </summary>
         public List<CCESpecies> Species { get; set;}
-
+		CCESpecies CurrentSpec;
         #region Constructors
         /// <summary>
         /// Initializes a new instance of the <see cref="GeneticSharp.Domain.GeneticAlgorithmCCE"/> class.
@@ -64,12 +68,12 @@ namespace GeneticSharp.Domain
             State = GeneticAlgorithmState.NotStarted;
 			TaskExecutorFit = new SmartThreadPoolTaskExecutor()
 			{
-				MinThreads = 10,
-				MaxThreads = 20
+				MinThreads = 5,
+				MaxThreads = 60
 			};       
 			TaskExecutorGen = new SmartThreadPoolTaskExecutor()
 			{
-				MinThreads = 10,
+				MinThreads = 4,
 				MaxThreads = 20
 			};       
         }
@@ -111,7 +115,14 @@ namespace GeneticSharp.Domain
         {
             get
             {
-                return Species.Select(p => p.BestChromosome).ToList();
+				// Not sure if below is ordered so I do it "manually"
+                //return Species.Select(p => p.BestChromosome).ToList();
+				List<IChromosome> bs = new List<IChromosome>();
+				foreach (CCESpecies s in Species)
+				{
+					bs.Add (s.BestChromosome);
+				}
+				return bs;
             }
         }
 
@@ -208,6 +219,11 @@ namespace GeneticSharp.Domain
         /// </summary>
         public void Resume()
         {
+			if (_debugging) {
+				Console.WriteLine ("Resuming GA");
+			}
+
+
             try
             {
                 lock (m_lock)
@@ -239,6 +255,11 @@ namespace GeneticSharp.Domain
 
                 do
                 {
+
+					if (_debugging) {
+						Console.WriteLine("Doing first round of GA");
+					}
+
                     if (m_stopRequested)
                     {
                         break;
@@ -279,7 +300,14 @@ namespace GeneticSharp.Domain
         /// </summary>
         /// <returns>True if termination has been reached, otherwise false.</returns>
         private bool EvolveOneGeneration()
-        {
+		{
+			if (_debugging) {
+				timer.Reset ();
+				timer.Start ();
+				Console.WriteLine ("Evolving a generation in GA");
+			}
+
+			
             try
             {
                 foreach(var spec in Species)
@@ -300,6 +328,13 @@ namespace GeneticSharp.Domain
                 TaskExecutorGen.Clear();
             }
 
+
+			if (_debugging) {
+				Console.WriteLine ("Evolved a generation. About to calculate fitness and end it. Time at {0}", timer.Elapsed.ToString ());
+				timer.Stop ();
+			}
+
+
             return EndCurrentGeneration();
         }
 
@@ -308,12 +343,42 @@ namespace GeneticSharp.Domain
         /// </summary>
         /// <returns><c>true</c>, if current generation was ended, <c>false</c> otherwise.</returns>
         private bool EndCurrentGeneration()
-        {
-            foreach(var spec in Species)
-            {
-                EvaluateFitness(spec);
-                spec.Population.EndCurrentGeneration();
-            }
+		{
+
+			if (_debugging) {
+				Console.WriteLine ("Starting fitness evaluation");
+				timer.Reset ();
+				timer.Start ();
+			}
+
+
+			// Insert multithreading here?
+			foreach(var spec in Species)
+			{
+				EvaluateFitness(spec);
+				// spec.Population.EndCurrentGeneration();
+				//spec.Population.GenerationsNumber++;
+			}
+
+
+			if (_debugging) {
+				Console.WriteLine ("Calculating Fitness done. Timer at {0}", timer.Elapsed);
+				timer.Stop ();
+				timer.Reset ();
+				Console.WriteLine ("Starting reinsertion");
+				timer.Start ();
+			}
+
+
+			foreach (var spec in Species) {
+				spec.EndCurrentGeneration ();
+			}
+
+			if (_debugging) {
+				Console.WriteLine ("Reinsertion done. Timer at {0}", timer.Elapsed);
+				timer.Stop ();
+			}
+
 			GenerationsNumber++;
 
             if (GenerationRan != null)
@@ -360,8 +425,12 @@ namespace GeneticSharp.Domain
             //     Fitness given is best of the two
             try
             {
-
-                foreach(var individual in spec.Population.CurrentGeneration.Chromosomes)
+				CurrentSpec = spec;
+				var coll = spec.Offspring;
+				if(coll == null)
+						coll = spec.Population.CurrentGeneration.Chromosomes;
+				
+                foreach(var individual in coll)
                 {
 					if(individual.Fitness.HasValue)
 						continue;
@@ -380,7 +449,7 @@ namespace GeneticSharp.Domain
 						int randIndex;
 
 						if(Species[o].Population.CurrentGeneration.Chromosomes.Count > 1)
-                        	randIndex = RandomizationProvider.Current.GetInt(1,Species[o].Population.CurrentGeneration.Chromosomes.Count-1);
+                        	randIndex = RandomizationProvider.Current.GetInt(0,Species[o].Population.CurrentGeneration.Chromosomes.Count-1);
 						else
 							randIndex = 0;
 
@@ -391,7 +460,7 @@ namespace GeneticSharp.Domain
 
                     TaskExecutorFit.Add(() =>
                             {
-                                RunEvaluateFitness(individual, RandomList);
+							RunEvaluateFitness(individual, RandomList);
                             });
 
                 }
@@ -408,7 +477,6 @@ namespace GeneticSharp.Domain
                 TaskExecutorFit.Clear();
             }
 
-            spec.OrderChromosomes();
         }
 
 
@@ -419,7 +487,7 @@ namespace GeneticSharp.Domain
         /// <returns>The evaluate fitness.</returns>
 		/// <param name="individual">The chromosome.</param>
 		/// <param name="randomSet">The chromosome.</param>
-        private object RunEvaluateFitness(IChromosome individual, List<IChromosome> randomSet)
+		private object RunEvaluateFitness(IChromosome individual, List<IChromosome> randomSet)
         {
 
             try
@@ -427,8 +495,12 @@ namespace GeneticSharp.Domain
 				if(BestChromosomeSet == null || BestChromosomeSet.Count == 0 || BestChromosomeSet.Contains(null))
 					individual.Fitness = Fitness.Evaluate(randomSet);
 				else
+				{
+					List<IChromosome> testWithBest = BestChromosomeSet;
+					testWithBest[CurrentSpec.ID] = individual;
                 	individual.Fitness = Math.Max(Fitness.Evaluate(randomSet),
-                                         Fitness.Evaluate(BestChromosomeSet));
+                                         Fitness.Evaluate(testWithBest));
+				}
             }
             catch (Exception ex)
             {

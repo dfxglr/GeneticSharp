@@ -7,12 +7,19 @@ using GeneticSharp.Domain.Randomizations;
 
 namespace GeneticSharp.Domain.Mutations
 {
-
+	/// <summary>
+	/// Point mutation small.
+	/// </summary>
     public class PointMutationSmall : MutationBase
     {
         // Perform a small mutation at a random point
 
         // We kind of assume we are dealing with ints....
+		/// <summary>
+		/// Mutate the specified chromosome.
+		/// </summary>
+		/// <param name="chromosome">The chromosome.</param>
+		/// <param name="probability">The probability to mutate each chromosome.</param>
         protected override void PerformMutate(IChromosome chromosome, float probability)
         {
             if(RandomizationProvider.Current.GetFloat() < probability)

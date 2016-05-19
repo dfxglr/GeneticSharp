@@ -1,4 +1,4 @@
-
+using System;
 using GeneticSharp.Domain.Randomizations;
 using System.Linq;
 using System.Collections.Generic;
@@ -21,7 +21,32 @@ namespace GeneticSharp.Domain
     public sealed class CCESpecies
     {
         // This class containts everything a species needs in CCE
+
+		/// <summary>
+		/// Gets or sets the name.
+		/// </summary>
+		/// <value>The name.</value>
 		public string Name {get;set;}
+
+		/// <summary>
+		/// Gets or sets the I.
+		/// </summary>
+		/// <value>The I.</value>
+		public int ID { get; set;}
+
+		/// <summary>
+		/// The offspring.
+		/// </summary>
+		public IList<IChromosome> Offspring;
+
+		/// <summary>
+		///  The parents
+		/// </summary>
+		public IList<IChromosome> Parents;
+
+
+		private bool _debugging = false;
+		private System.Diagnostics.Stopwatch timer = new System.Diagnostics.Stopwatch();
 
         #region Constants
         /// <summary>
@@ -51,13 +76,104 @@ namespace GeneticSharp.Domain
 		/// </summary>
         public void GenerateChildren()
         {
+			if (_debugging) {
+				Console.WriteLine ("Species '{0}' generating children", Name);
+				timer.Start ();
+			}
+
             // Do the whole selection, crossover, etc
-            var parents = SelectParents();
-            var offspring = Cross(parents);
-            Mutate(offspring);
-            var newGenerationChromosomes = Reinsert(offspring, parents);
-            Population.CreateNewGeneration(newGenerationChromosomes);
+            Parents = SelectParents();
+
+			if (_debugging) {
+				Console.WriteLine ("Species '{0}' selected parents. Took {1}", Name, timer.Elapsed.ToString ());
+				timer.Stop ();
+				timer.Start ();
+			}
+
+            Offspring = Cross(Parents);
+
+			if (_debugging) {
+				Console.WriteLine ("Species '{0}' did crossover. Took {1}", Name, timer.Elapsed.ToString ());
+				timer.Stop ();
+				timer.Start ();
+			}
+
+            Mutate(Offspring);
+
+			if (_debugging) {
+				Console.WriteLine ("Species '{0}' mutated. Took {1}", Name, timer.Elapsed.ToString ());
+				timer.Stop ();
+			}
+
+			if (_debugging) {
+				Console.WriteLine ("Species '{0}' repairing.", Name);
+				timer.Start ();
+			}
+
+			Repair (Offspring);
+
+			if (_debugging) {
+				Console.WriteLine ("Species '{0}' repaired. Took {1}", Name, timer.Elapsed);
+				timer.Stop ();
+			}
+
+			if(_debugging)
+				System.Threading.Thread.Sleep (1000);
+			// repair
         }
+
+		/// <summary>
+		/// Ends the current generation.
+		/// </summary>
+		public void EndCurrentGeneration()
+		{            
+			if (_debugging) {
+				timer.Start ();
+			}							
+
+			//var coll =  Population.CurrentGeneration.Chromosomes == null ? Offspring : Population.CurrentGeneration.Chromosomes;// parents not used
+			var coll = Offspring;
+
+			// null in first round I think
+			if (coll == null)
+				coll = Population.CurrentGeneration.Chromosomes;
+
+
+			if (_debugging) {
+				if (coll == Offspring) {
+					Console.WriteLine ("Collection is Offspring");
+					if (coll == null)
+						Console.WriteLine ("IT IS NULL");
+				} else if (coll == Population.CurrentGeneration.Chromosomes) {
+					Console.WriteLine ("Collection is CurrentGeneration.Chromosomes");
+				}
+				Console.WriteLine ("{0} in the coll list", coll.Count);
+			}
+
+			var newGenerationChromosomes = Reinsert(coll, Parents);
+
+
+			if (_debugging) {
+				Console.WriteLine ("{0} new chromosomes returned from reinsertion", newGenerationChromosomes.Count);
+				Console.WriteLine ("Species '{0}' reinserted. Took {1}", Name, timer.Elapsed.ToString ());
+				timer.Stop ();
+				timer.Start ();
+			}
+			Population.EndCurrentGeneration ();
+
+
+			Population.CreateNewGeneration(newGenerationChromosomes);
+
+			if (_debugging) {
+				Console.WriteLine ("Species '{0}' created new generation. Took {1}", Name, timer.Elapsed.ToString ());
+				timer.Stop ();
+				//timer.Start ();
+			}
+
+			if(_debugging)
+				System.Threading.Thread.Sleep (1000);
+
+		}
 
 		/// <summary>
 		/// Orders the chromosomes.
@@ -73,7 +189,15 @@ namespace GeneticSharp.Domain
         /// <returns>The parents.</returns>
         private IList<IChromosome> SelectParents()
         {
-            return Selection.SelectChromosomes(Population.MinSize, Population.CurrentGeneration);
+			if(_debugging)
+				Console.WriteLine("Selecting parents from");
+			
+			var _selection = Selection.SelectChromosomes(Population.MinSize, Population.CurrentGeneration);
+
+			if (_debugging)
+				Console.WriteLine ("Selected {0} parents", _selection.Count);
+			
+			return _selection; 
         }
 
         /// <summary>
@@ -98,6 +222,12 @@ namespace GeneticSharp.Domain
                 }
             }
 
+			if (_debugging) {
+				Console.WriteLine ("{0} parents created {1} children", parents.Count, offspring.Count);
+				if (offspring.Count < parents.Count) {
+					Console.WriteLine ("Time for debugging! This is a bp");
+				}
+			}
             return offspring;
         }
 
@@ -114,6 +244,14 @@ namespace GeneticSharp.Domain
             }
         }
 
+
+		private void Repair(IList<IChromosome> chromosomes)
+		{
+			foreach (var c in chromosomes) {
+				Reparation.Repair (c);
+			}
+		}
+
         /// <summary>
         /// Reinsert the specified offspring and parents.
         /// </summary>
@@ -124,7 +262,20 @@ namespace GeneticSharp.Domain
         /// </returns>
         private IList<IChromosome> Reinsert(IList<IChromosome> offspring, IList<IChromosome> parents)
         {
-            return Reinsertion.SelectChromosomes(Population, offspring, parents);
+			
+			try{
+			if (offspring.Count < Population.MinSize)
+				offspring.Concat (parents);
+
+				if(parents == null)
+					parents = new List<IChromosome>();
+
+			return Reinsertion.SelectChromosomes(Population, offspring, parents);
+			}
+			catch {
+				Console.WriteLine ("GET ON THE GROUND FUCKO THIS IS A BP");
+				return null;
+			}
         }
         /// <summary>
         /// Gets the population.
@@ -163,6 +314,11 @@ namespace GeneticSharp.Domain
         /// </summary>
         public IReinsertion Reinsertion { get; set; }
 
+		/// <summary>
+		/// Gets or sets the reparation.
+		/// </summary>
+		/// <value>The reparation.</value>
+		public IReparation Reparation { get; set; }
 
         /// <summary>
         /// Gets the best chromosome.

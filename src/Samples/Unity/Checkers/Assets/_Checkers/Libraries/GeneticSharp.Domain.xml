@@ -2984,6 +2984,28 @@
              A Speecies fr use in CCE
              </summary>
             </member>
+        <member name="P:GeneticSharp.Domain.CCESpecies.Name">
+             <summary>
+             Gets or sets the name.
+             </summary>
+             <value>The name.</value>
+            </member>
+        <member name="P:GeneticSharp.Domain.CCESpecies.ID">
+             <summary>
+             Gets or sets the I.
+             </summary>
+             <value>The I.</value>
+            </member>
+        <member name="F:GeneticSharp.Domain.CCESpecies.Offspring">
+             <summary>
+             The offspring.
+             </summary>
+            </member>
+        <member name="F:GeneticSharp.Domain.CCESpecies.Parents">
+             <summary>
+              The parents
+             </summary>
+            </member>
         <member name="F:GeneticSharp.Domain.CCESpecies.DefaultCrossoverProbability">
              <summary>
              The default crossover probability.
@@ -3002,6 +3024,11 @@
         <member name="M:GeneticSharp.Domain.CCESpecies.GenerateChildren">
              <summary>
              Creates the new generation of children.
+             </summary>
+            </member>
+        <member name="M:GeneticSharp.Domain.CCESpecies.EndCurrentGeneration">
+             <summary>
+             Ends the current generation.
              </summary>
             </member>
         <member name="M:GeneticSharp.Domain.CCESpecies.OrderChromosomes">
@@ -3074,6 +3101,12 @@
              <summary>
              Gets or sets the reinsertion operator.
              </summary>
+            </member>
+        <member name="P:GeneticSharp.Domain.CCESpecies.Reparation">
+             <summary>
+             Gets or sets the reparation.
+             </summary>
+             <value>The reparation.</value>
             </member>
         <member name="P:GeneticSharp.Domain.CCESpecies.BestChromosome">
              <summary>
@@ -3232,6 +3265,194 @@
              </summary>
              <param name="chromosome">The chromosome to be evaluated.</param>
              <returns>The fitness of the chromosome.</returns>
+            </member>
+        <member name="T:GeneticSharp.Domain.Mutations.DeletionMutation">
+             <summary>
+             Deletion mutation.
+             </summary>
+            </member>
+        <member name="F:GeneticSharp.Domain.Mutations.DeletionMutation.MinDeletionSize">
+             <summary>
+             The minimum size of the deletion.
+             </summary>
+            </member>
+        <member name="F:GeneticSharp.Domain.Mutations.DeletionMutation.MaxDeletionSize">
+             <summary>
+             The size of the max deletion.
+             </summary>
+            </member>
+        <member name="M:GeneticSharp.Domain.Mutations.DeletionMutation.PerformMutate(GeneticSharp.Domain.Chromosomes.IChromosome,System.Single)">
+             <summary>
+             Mutate the specified chromosome.
+             </summary>
+             <param name="chromosome">The chromosome.</param>
+             <param name="probability">The probability to mutate each chromosome.</param>
+            </member>
+        <member name="T:GeneticSharp.Domain.Mutations.InsertionMutation">
+             <summary>
+             Insertion mutation.
+             </summary>
+            </member>
+        <member name="F:GeneticSharp.Domain.Mutations.InsertionMutation.MinInsertionSize">
+             <summary>
+             The minimum size of the insertion.
+             </summary>
+            </member>
+        <member name="F:GeneticSharp.Domain.Mutations.InsertionMutation.MaxInsertionSize">
+             <summary>
+             The size of the max insertion.
+             </summary>
+            </member>
+        <member name="M:GeneticSharp.Domain.Mutations.InsertionMutation.PerformMutate(GeneticSharp.Domain.Chromosomes.IChromosome,System.Single)">
+             <summary>
+             Mutate the specified chromosome.
+             </summary>
+             <param name="chromosome">The chromosome.</param>
+             <param name="probability">The probability to mutate each chromosome.</param>
+            </member>
+        <member name="T:GeneticSharp.Domain.Mutations.MultipleMutations">
+             <summary>
+             Multiple mutations.
+             </summary>
+            </member>
+        <member name="F:GeneticSharp.Domain.Mutations.MultipleMutations.Mutations">
+             <summary>
+             The mutations.
+             </summary>
+            </member>
+        <member name="F:GeneticSharp.Domain.Mutations.MultipleMutations.RelativeProbabilites">
+             <summary>
+             The relative probabilites.
+             </summary>
+            </member>
+        <member name="M:GeneticSharp.Domain.Mutations.MultipleMutations.#ctor(System.Collections.Generic.List{GeneticSharp.Domain.Mutations.IMutation},System.Collections.Generic.List{System.Single})">
+             <summary>
+             Initializes a new instance of the <see cref="T:GeneticSharp.Domain.Mutations.MultipleMutations" /> class.
+             </summary>
+             <param name="mutations">Mutations.</param>
+             <param name="relprobs">Relprobs.</param>
+            </member>
+        <member name="M:GeneticSharp.Domain.Mutations.MultipleMutations.PerformMutate(GeneticSharp.Domain.Chromosomes.IChromosome,System.Single)">
+             <summary>
+             Mutate the specified chromosome.
+             </summary>
+             <param name="chromosome">The chromosome.</param>
+             <param name="probability">The probability to mutate each chromosome.</param>
+            </member>
+        <member name="T:GeneticSharp.Domain.Mutations.PointMutationLarge">
+             <summary>
+             Point mutation large.
+             </summary>
+            </member>
+        <member name="M:GeneticSharp.Domain.Mutations.PointMutationLarge.PerformMutate(GeneticSharp.Domain.Chromosomes.IChromosome,System.Single)">
+             <summary>
+             Mutate the specified chromosome.
+             </summary>
+             <param name="chromosome">The chromosome.</param>
+             <param name="probability">The probability to mutate each chromosome.</param>
+            </member>
+        <member name="T:GeneticSharp.Domain.Mutations.PointMutationSmall">
+             <summary>
+             Point mutation small.
+             </summary>
+            </member>
+        <member name="M:GeneticSharp.Domain.Mutations.PointMutationSmall.PerformMutate(GeneticSharp.Domain.Chromosomes.IChromosome,System.Single)">
+             <summary>
+             Mutate the specified chromosome.
+             </summary>
+             <param name="chromosome">The chromosome.</param>
+             <param name="probability">The probability to mutate each chromosome.</param>
+            </member>
+        <member name="T:GeneticSharp.Domain.Mutations.ReplicationMutation">
+             <summary>
+             Replication mutation.
+             </summary>
+            </member>
+        <member name="F:GeneticSharp.Domain.Mutations.ReplicationMutation.MinReplicationSize">
+             <summary>
+             The minimum size of the replication.
+             </summary>
+            </member>
+        <member name="F:GeneticSharp.Domain.Mutations.ReplicationMutation.MaxReplicationSize">
+             <summary>
+             The size of the max replication.
+             </summary>
+            </member>
+        <member name="M:GeneticSharp.Domain.Mutations.ReplicationMutation.PerformMutate(GeneticSharp.Domain.Chromosomes.IChromosome,System.Single)">
+             <summary>
+             Mutate the specified chromosome.
+             </summary>
+             <param name="chromosome">The chromosome.</param>
+             <param name="probability">The probability to mutate each chromosome.</param>
+            </member>
+        <member name="T:GeneticSharp.Domain.Mutations.SlipMutation">
+             <summary>
+             Slip mutation.
+             </summary>
+            </member>
+        <member name="F:GeneticSharp.Domain.Mutations.SlipMutation.MinSlipSize">
+             <summary>
+             The minimum size of the slip.
+             </summary>
+            </member>
+        <member name="F:GeneticSharp.Domain.Mutations.SlipMutation.MaxSlipSize">
+             <summary>
+             The size of the max slip.
+             </summary>
+            </member>
+        <member name="M:GeneticSharp.Domain.Mutations.SlipMutation.PerformMutate(GeneticSharp.Domain.Chromosomes.IChromosome,System.Single)">
+             <summary>
+             Mutate the specified chromosome.
+             </summary>
+             <param name="chromosome">The chromosome.</param>
+             <param name="probability">The probability to mutate each chromosome.</param>
+            </member>
+        <member name="T:GeneticSharp.Domain.Crossovers.SVLC">
+             <summary>
+             Synapsing Variable Length Crossover
+             </summary>
+            </member>
+        <member name="M:GeneticSharp.Domain.Crossovers.SVLC.#ctor(System.Int32,System.Int32)">
+             <summary>
+             Initializes a new instance of the <see cref="T:GeneticSharp.Domain.Crossovers.SVLC" /> class.
+             </summary>
+             <param name="parentsNumber">Parents number.</param>
+             <param name="childrenNumber">Children number.</param>
+            </member>
+        <member name="M:GeneticSharp.Domain.Crossovers.SVLC.PerformCross(System.Collections.Generic.IList{GeneticSharp.Domain.Chromosomes.IChromosome})">
+             <summary>
+             Performs the cross with specified parents generating the children.
+             </summary>
+             <param name="parents">The parents chromosomes.</param>
+             <returns>The offspring (children) of the parents.</returns>
+            </member>
+        <member name="T:GeneticSharp.Domain.Chromosomes.IReparation">
+             <summary>
+             I reparation.
+             </summary>
+            </member>
+        <member name="M:GeneticSharp.Domain.Chromosomes.IReparation.Repair(GeneticSharp.Domain.Chromosomes.IChromosome)">
+             <summary>
+             Repair the specified chromosome.
+             </summary>
+             <param name="chromosome">Chromosome.</param>
+            </member>
+        <member name="T:GeneticSharp.Domain.Chromosomes.ReparationBase">
+             <summary>
+             Reparation base.
+             </summary>
+            </member>
+        <member name="M:GeneticSharp.Domain.Chromosomes.ReparationBase.Repair(GeneticSharp.Domain.Chromosomes.IChromosome)">
+             <summary>
+             Repair the specified chromosome.
+             </summary>
+             <param name="chromosome">Chromosome.</param>
+            </member>
+        <member name="M:GeneticSharp.Domain.Chromosomes.ReparationBase.PerformRepair(GeneticSharp.Domain.Chromosomes.IChromosome)">
+             <summary>
+             Performs the repair.
+             </summary>
+             <param name="chromosome">Chromosome.</param>
             </member>
     </members>
 </doc>

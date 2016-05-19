@@ -48,6 +48,8 @@ namespace GeneticSharp.Domain.Selections
         /// </returns>
         protected override IList<IChromosome> PerformSelectChromosomes(int number, Generation generation)
         {
+			try
+			{
             var chromosomes = generation.Chromosomes;
             var rouleteWheel = new List<double>();
             double stepSize = 1.0 / number;
@@ -72,6 +74,11 @@ namespace GeneticSharp.Domain.Selections
 
                     return currentPointer;
                 });
+			}
+			catch{
+				System.Console.WriteLine ("Somethings fucky! bp!");
+				return null;
+			}
         }
         #endregion
     }

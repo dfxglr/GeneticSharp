@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System;
 using GeneticSharp.Domain.Chromosomes;
 using GeneticSharp.Domain.Randomizations;
 
@@ -6,20 +7,33 @@ using GeneticSharp.Domain.Randomizations;
 namespace GeneticSharp.Domain.Mutations
 {
 
-
-    public class SlipMutation
+	/// <summary>
+	/// Slip mutation.
+	/// </summary>
+    public class SlipMutation : MutationBase
     {
+		/// <summary>
+		/// The minimum size of the slip.
+		/// </summary>
         public int MinSlipSize = 1;
-        public int MaxSlipSize = 5;
+        
+		/// <summary>
+		/// The size of the max slip.
+		/// </summary>
+		public int MaxSlipSize = 5;
 
-
+		/// <summary>
+		/// Mutate the specified chromosome.
+		/// </summary>
+		/// <param name="chromosome">The chromosome.</param>
+		/// <param name="probability">The probability to mutate each chromosome.</param>
         protected override void PerformMutate(IChromosome chromosome, float probability)
         {
             if(RandomizationProvider.Current.GetFloat() < probability)
             {
                 // Get slip size, source and destination indicies
-                int slipSize = RandomizationProvider.Current.GetInt(MinSlipSize, MaxSlipSize);
-                int index = RandomizationProvider.Current.GetInt(0, chromosome.Length - slipSize - 1);
+				int slipSize = RandomizationProvider.Current.GetInt(MinSlipSize, Math.Min(MaxSlipSize,chromosome.Length));
+				int index = RandomizationProvider.Current.GetInt(0, chromosome.Length - (slipSize - 1));
 
                 float insertAfter = RandomizationProvider.Current.GetFloat();
 
@@ -35,7 +49,7 @@ namespace GeneticSharp.Domain.Mutations
                     genes.InsertRange(index+slipSize, genes.GetRange(index, slipSize));
 
                 // Resize and replace with new genome
-                chromosome.Resize(chromosome.Length + slipSize);
+				chromosome.Resize(genes.Count);
                 chromosome.ReplaceGenes(0, genes.ToArray());
             }
         }

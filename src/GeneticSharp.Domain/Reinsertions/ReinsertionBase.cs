@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System;
 using GeneticSharp.Domain.Chromosomes;
 using GeneticSharp.Domain.Populations;
 using HelperSharp;
@@ -23,6 +24,8 @@ namespace GeneticSharp.Domain.Reinsertions
         }
         #endregion
 
+		private bool _debugging = false;
+
         #region Properties
         /// <summary>
         /// Gets a value indicating whether can collapse the number of selected chromosomes for reinsertion.
@@ -44,7 +47,11 @@ namespace GeneticSharp.Domain.Reinsertions
         /// <param name="offspring">The offspring.</param>
         /// <param name="parents">The parents.</param>
         public IList<IChromosome> SelectChromosomes(IPopulation population, IList<IChromosome> offspring, IList<IChromosome> parents)
-        {
+		{
+			if (_debugging) {
+				Console.WriteLine ("Performing fitness based reinsertion.");
+				Console.WriteLine ("#offspring: {0}", offspring.Count);
+			}
             ExceptionHelper.ThrowIfNull("population", population);
             ExceptionHelper.ThrowIfNull("offspring", offspring);
             ExceptionHelper.ThrowIfNull("parents", parents);

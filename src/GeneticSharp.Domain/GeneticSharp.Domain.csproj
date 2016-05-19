@@ -121,6 +121,16 @@
     <Compile Include="CCESpecies.cs" />
     <Compile Include="GeneticAlgorithmCCE.cs" />
     <Compile Include="Fitnesses\ICCEFitness.cs" />
+    <Compile Include="Mutations\DeletionMutation.cs" />
+    <Compile Include="Mutations\InsertionMutation.cs" />
+    <Compile Include="Mutations\MultipleMutations.cs" />
+    <Compile Include="Mutations\PointMutationLarge.cs" />
+    <Compile Include="Mutations\PointMutationSmall.cs" />
+    <Compile Include="Mutations\ReplicationMutation.cs" />
+    <Compile Include="Mutations\SlipMutation.cs" />
+    <Compile Include="Crossovers\SVLC.cs" />
+    <Compile Include="Chromosomes\IReparation.cs" />
+    <Compile Include="Chromosomes\ReparationBase.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

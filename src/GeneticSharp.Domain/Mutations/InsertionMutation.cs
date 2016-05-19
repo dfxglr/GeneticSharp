@@ -6,20 +6,33 @@ using GeneticSharp.Domain.Randomizations;
 namespace GeneticSharp.Domain.Mutations
 {
 
-
-    public class InsertionMutation
+	/// <summary>
+	/// Insertion mutation.
+	/// </summary>
+	public class InsertionMutation : MutationBase
     {
+		/// <summary>
+		/// The minimum size of the insertion.
+		/// </summary>
         public int MinInsertionSize = 1;
-        public int MaxInsertionSize = 5;
+        
+		/// <summary>
+		/// The size of the max insertion.
+		/// </summary>
+		public int MaxInsertionSize = 5;
 
-
+		/// <summary>
+		/// Mutate the specified chromosome.
+		/// </summary>
+		/// <param name="chromosome">The chromosome.</param>
+		/// <param name="probability">The probability to mutate each chromosome.</param>
         protected override void PerformMutate(IChromosome chromosome, float probability)
         {
             if(RandomizationProvider.Current.GetFloat() < probability)
             {
                 // Get random insertion size and index
                 int insertionSize = RandomizationProvider.Current.GetInt(MinInsertionSize, MaxInsertionSize);
-                int index = RandomizationProvider.Current.GetInt(0,chromosome.Length - insertionSize - 1);
+                int index = RandomizationProvider.Current.GetInt(0,chromosome.Length - 1);
 
 
                 // Generate new genes for insertion
@@ -37,9 +50,9 @@ namespace GeneticSharp.Domain.Mutations
 
 
                 // Resize chromosome and replace with new
-                chromosome.Resize(chromosome.Length + insertionSize);
+				chromosome.Resize(genes.Count);
 
-                chromosome.ReplaceGenes(index, genes.ToArray());
+                chromosome.ReplaceGenes(0, genes.ToArray());
             }
         }
     }
