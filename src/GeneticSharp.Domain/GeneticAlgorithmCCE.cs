@@ -66,16 +66,18 @@ namespace GeneticSharp.Domain
             Species = species;
             TimeEvolving = TimeSpan.Zero;
             State = GeneticAlgorithmState.NotStarted;
-			TaskExecutorFit = new SmartThreadPoolTaskExecutor()
-			{
-				MinThreads = 5,
-				MaxThreads = 60
-			};       
-			TaskExecutorGen = new SmartThreadPoolTaskExecutor()
-			{
-				MinThreads = 4,
-				MaxThreads = 20
-			};       
+			TaskExecutorFit = new LinearTaskExecutor ();
+			TaskExecutorGen = new LinearTaskExecutor ();
+//			TaskExecutorFit = new SmartThreadPoolTaskExecutor()
+//			{
+//				MinThreads = 5,
+//				MaxThreads = 60
+//			};   
+//			TaskExecutorGen = new SmartThreadPoolTaskExecutor()
+//			{
+//				MinThreads = 4,
+//				MaxThreads = 20
+//			};       
         }
 
         #endregion

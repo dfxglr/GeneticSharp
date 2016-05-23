@@ -162,9 +162,9 @@ namespace GeneticSharp.Domain.Crossovers
                		children.Add(offspring);
            }
 								// min pop size
-			while (children.Count < 10) {
-				children.Add (parents [RandomizationProvider.Current.GetInt (0, parents.Count - 1)]);
-			}
+//			while (children.Count < 10) {
+//				children.Add (parents [RandomizationProvider.Current.GetInt (0, parents.Count - 1)]);
+//			}
 
 			if (_debugging)
 				Console.WriteLine ("SVLC returning {0} children", children.Count);

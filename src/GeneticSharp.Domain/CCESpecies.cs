@@ -117,9 +117,7 @@ namespace GeneticSharp.Domain
 				timer.Stop ();
 			}
 
-			if(_debugging)
-				System.Threading.Thread.Sleep (1000);
-			// repair
+
         }
 
 		/// <summary>
@@ -170,8 +168,6 @@ namespace GeneticSharp.Domain
 				//timer.Start ();
 			}
 
-			if(_debugging)
-				System.Threading.Thread.Sleep (1000);
 
 		}
 
@@ -264,11 +260,17 @@ namespace GeneticSharp.Domain
         {
 			
 			try{
-			if (offspring.Count < Population.MinSize)
-				offspring.Concat (parents);
+			while (offspring.Count < Population.MinSize)
+			{
+				offspring.Add(parents [RandomizationProvider.Current.GetInt (0, parents.Count - 1)]);
+//				if(offspring.Count == 0)
+//					offspring.Add(parents.First().CreateNew());
+//				else
+//					offspring.Add(offspring.First().CreateNew());
+			}
 
-				if(parents == null)
-					parents = new List<IChromosome>();
+			if(parents == null)
+				parents = new List<IChromosome>();
 
 			return Reinsertion.SelectChromosomes(Population, offspring, parents);
 			}

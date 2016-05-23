@@ -55,7 +55,8 @@ namespace GeneticSharp.Domain.Selections
             {
                 var pointer = getPointer();
 
-                var chromosomeIndex = rouletteWheel.Select((value, index) => new { Value = value, Index = index }).FirstOrDefault(r => r.Value >= pointer).Index;
+                var chromosomeIndex = rouletteWheel.Select((value, index) => new { Value = value, Index = index })
+													.FirstOrDefault(r => r.Value >= pointer).Index;
                 selected.Add(chromosomes[chromosomeIndex]);
             }
 
@@ -71,12 +72,16 @@ namespace GeneticSharp.Domain.Selections
         {
             var sumFitness = chromosomes.Sum(c => c.Fitness.Value);
 
-            var cumulativePercent = 0.0;
+            double cumulativePercent = 0.0;
 
             foreach (var c in chromosomes)
             {
-                cumulativePercent += c.Fitness.Value / sumFitness;
-                rouletteWheel.Add(cumulativePercent);
+				if (sumFitness == 0)
+					cumulativePercent += 1.0 / chromosomes.Count;
+				else 
+					cumulativePercent += c.Fitness.Value / sumFitness;
+				
+				rouletteWheel.Add (cumulativePercent);
             }
         }
 
