@@ -80,6 +80,7 @@ namespace GeneticSharp.Domain
 				Console.WriteLine ("Species '{0}' generating children", Name);
 				timer.Start ();
 			}
+			OrderChromosomes ();
 
             // Do the whole selection, crossover, etc
             Parents = SelectParents();
@@ -157,6 +158,9 @@ namespace GeneticSharp.Domain
 				timer.Stop ();
 				timer.Start ();
 			}
+
+			OrderChromosomes ();
+
 			Population.EndCurrentGeneration ();
 
 

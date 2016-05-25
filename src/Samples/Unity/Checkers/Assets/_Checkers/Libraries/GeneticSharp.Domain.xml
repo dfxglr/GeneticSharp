@@ -3171,6 +3171,11 @@
              </summary>
              <value>The best chromosome.</value>
             </member>
+        <member name="F:GeneticSharp.Domain.GeneticAlgorithmCCE.UberBestSet">
+             <summary>
+             The uber best set.
+             </summary>
+            </member>
         <member name="P:GeneticSharp.Domain.GeneticAlgorithmCCE.TimeEvolving">
              <summary>
              Gets the time evolving.
@@ -3193,6 +3198,11 @@
              </summary>
             </member>
         <member name="P:GeneticSharp.Domain.GeneticAlgorithmCCE.TaskExecutorFit">
+             <summary>
+             Gets or sets the task executor which will be used to execute fitness evaluation.
+             </summary>
+            </member>
+        <member name="P:GeneticSharp.Domain.GeneticAlgorithmCCE.TaskExecutorFitMaster">
              <summary>
              Gets or sets the task executor which will be used to execute fitness evaluation.
              </summary>

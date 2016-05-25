@@ -143,6 +143,7 @@ namespace GeneticSharp.Domain.Chromosomes
         public virtual IChromosome Clone()
         {
             var clone = CreateNew();
+			clone.Resize (this.Length);
             clone.ReplaceGenes(0, GetGenes());
             clone.Fitness = Fitness;
 

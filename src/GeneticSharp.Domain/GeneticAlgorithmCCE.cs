@@ -40,13 +40,14 @@ namespace GeneticSharp.Domain
 		// Might wanna fix this
 
 
-		private bool _debugging = false;
+		private bool _debugging = true;
 
 		private System.Diagnostics.Stopwatch timer = new System.Diagnostics.Stopwatch ();
 
         #region Fields
         private bool m_stopRequested;
         private object m_lock = new object();
+
         private GeneticAlgorithmState m_state;
         #endregion
 
@@ -66,18 +67,23 @@ namespace GeneticSharp.Domain
             Species = species;
             TimeEvolving = TimeSpan.Zero;
             State = GeneticAlgorithmState.NotStarted;
+//			TaskExecutorFitMaster = new SmartThreadPoolTaskExecutor () {
+//				MinThreads = 4,
+//				MaxThreads = 8
+//			};
+			TaskExecutorFitMaster = new LinearTaskExecutor ();
 			TaskExecutorFit = new LinearTaskExecutor ();
-			TaskExecutorGen = new LinearTaskExecutor ();
+//			TaskExecutorGen = new LinearTaskExecutor ();
 //			TaskExecutorFit = new SmartThreadPoolTaskExecutor()
 //			{
 //				MinThreads = 5,
 //				MaxThreads = 60
 //			};   
-//			TaskExecutorGen = new SmartThreadPoolTaskExecutor()
-//			{
-//				MinThreads = 4,
-//				MaxThreads = 20
-//			};       
+			TaskExecutorGen = new SmartThreadPoolTaskExecutor()
+			{
+				MinThreads = 4,
+				MaxThreads = 8
+			};       
         }
 
         #endregion
@@ -120,14 +126,20 @@ namespace GeneticSharp.Domain
 				// Not sure if below is ordered so I do it "manually"
                 //return Species.Select(p => p.BestChromosome).ToList();
 				List<IChromosome> bs = new List<IChromosome>();
-				foreach (CCESpecies s in Species)
+				for(int i = 0; i < Species.Count; i++)
 				{
-					bs.Add (s.BestChromosome);
+					bs.Add (Species[i].BestChromosome);
 				}
 				return bs;
             }
         }
 
+		/// <summary>
+		/// The uber best set.
+		/// </summary>
+		public List<IChromosome> UberBestSet;
+
+			
         /// <summary>
         /// Gets the time evolving.
         /// </summary>
@@ -177,6 +189,13 @@ namespace GeneticSharp.Domain
 		/// Gets or sets the task executor which will be used to execute fitness evaluation.
 		/// </summary>
         public ITaskExecutor TaskExecutorFit { get; set; }
+
+
+		/// <summary>
+		/// Gets or sets the task executor which will be used to execute fitness evaluation.
+		/// </summary>
+		public ITaskExecutor TaskExecutorFitMaster { get; set; }
+
 
 		/// <summary>
 		/// Termination
@@ -355,12 +374,37 @@ namespace GeneticSharp.Domain
 
 
 			// Insert multithreading here?
-			foreach(var spec in Species)
+
+
+
+			try
 			{
-				EvaluateFitness(spec);
-				// spec.Population.EndCurrentGeneration();
-				//spec.Population.GenerationsNumber++;
+				foreach(var spec in Species)
+				{
+					TaskExecutorFitMaster.Add (() => {
+						EvaluateFitness (spec);
+					});
+				}
+				if (!TaskExecutorFitMaster.Start())
+				{
+					throw new TimeoutException("The fitness evaluation rech the {0} timeout.".With(TaskExecutorFitMaster.Timeout));
+				}
 			}
+			finally
+			{
+				TaskExecutorFitMaster.Stop();
+				TaskExecutorFitMaster.Clear();
+			}
+
+
+			if (_debugging) {
+				Console.WriteLine ("Evolved a generation. About to calculate fitness and end it. Time at {0}", timer.Elapsed.ToString ());
+				timer.Stop ();
+			}
+
+
+
+
 
 
 			if (_debugging) {
@@ -382,6 +426,17 @@ namespace GeneticSharp.Domain
 			}
 
 			GenerationsNumber++;
+
+			//update uber best set
+			if (UberBestSet == null || UberBestSet.Count == 0) {
+				UberBestSet = new List<IChromosome> ();
+				foreach (IChromosome c in BestChromosomeSet)
+					UberBestSet.Add (c.Clone());
+			}
+			else
+				for (int i = 0; i < BestChromosomeSet.Count; i++)
+					if (UberBestSet [i].Fitness < BestChromosomeSet [i].Fitness)
+						UberBestSet [i] = BestChromosomeSet [i].Clone();
 
             if (GenerationRan != null)
             {
@@ -494,11 +549,11 @@ namespace GeneticSharp.Domain
 
             try
             {
-				if(BestChromosomeSet == null || BestChromosomeSet.Count == 0 || BestChromosomeSet.Contains(null))
+				if(UberBestSet == null || UberBestSet.Count == 0 || UberBestSet.Contains(null))
 					individual.Fitness = Fitness.Evaluate(randomSet);
 				else
 				{
-					List<IChromosome> testWithBest = BestChromosomeSet;
+					List<IChromosome> testWithBest = UberBestSet;
 					testWithBest[CurrentSpec.ID] = individual;
                 	individual.Fitness = Math.Max(Fitness.Evaluate(randomSet),
                                          Fitness.Evaluate(testWithBest));
